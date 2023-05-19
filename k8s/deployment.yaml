@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-101-deployment
+  labels:
+    app: k8s-101
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-101
+  template:
+    metadata:
+      labels:
+        app: k8s-101
+    spec:
+      # imagePullSecrets:
+      #   - name: k8s-101-registry-private
+      containers:
+        - name: k8s-101
+          image: bobragnarok/k8s-101:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          envFrom:
+          - configMapRef:
+              name: k8s-101-config
+          resources:
+            limits:
+              cpu: 250m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 204Mi
+          volumeMounts:
+            - mountPath: file
+              name: k8s-101-pv-storage
+      volumes:
+        - name: k8s-101-pv-storage
+          persistentVolumeClaim:
+            claimName: k8s-101-pvc
